@@ -120,7 +120,7 @@ class UsageSection {
 				progressBar.tooltip.textContent = localize('usage.tooltip_pct_used', { pct: limit.percentage.toFixed(0) });
 			}
 
-			const color = limit.percentage >= CONFIG.WARNING_THRESHOLD * 100 ? RED_WARNING : BLUE_HIGHLIGHT;
+			const color = BLUE_HIGHLIGHT;
 			percentage.textContent = `${limit.percentage.toFixed(0)}%`;
 			percentage.style.color = color;
 
@@ -150,7 +150,7 @@ class UsageSection {
 			const totalDollars = (effectiveTotal / 100).toFixed(2);
 			progressBar.tooltip.textContent = localize('usage.tooltip_dollars', { used: usedDollars, total: totalDollars });
 
-			const color = pct >= CONFIG.WARNING_THRESHOLD * 100 ? RED_WARNING : BLUE_HIGHLIGHT;
+			const color = BLUE_HIGHLIGHT;
 			percentage.textContent = `${pct.toFixed(0)}%`;
 			percentage.style.color = color;
 
@@ -371,32 +371,10 @@ class UsageUI {
 		sectionsContainer.appendChild(this.usageSection.elements.container);
 		content.appendChild(sectionsContainer);
 
-		// Add footers
-		let desktopFooter = null;
-		let qolFooter = null;
-		const isElectron = await sendBackgroundMessage({ type: 'isElectron' });
-		if (!isElectron) {
-			desktopFooter = this.createDesktopFooter();
-			content.appendChild(desktopFooter);
-
-			qolFooter = this.createQoLFooter();
-			if (qolFooter) {
-				content.appendChild(qolFooter);
-			}
-		}
-
-		// Built on every platform, Electron included: unlike the desktop/QoL links a bug report
-		// is relevant wherever the extension runs.
-		const bugFooter = this.createBugFooter();
-		content.appendChild(bugFooter);
-
-		const donateFooter = this.createDonateFooter();
-		content.appendChild(donateFooter);
-
 		container.appendChild(header);
 		container.appendChild(content);
 
-		const elements = { container, content, toggle, desktopFooter, qolFooter, bugFooter };
+		const elements = { container, content, toggle };
 		toggle.addEventListener('click', () => this.setCollapsed(!this.state.collapsed));
 
 		return elements;
@@ -741,7 +719,7 @@ class UsageUI {
 			const used = usageData.extraUsage.usedCredits;
 			const pct = effectiveTotal > 0 ? (used / effectiveTotal) * 100 : 0;
 
-			const color = pct >= CONFIG.WARNING_THRESHOLD * 100 ? RED_WARNING : BLUE_HIGHLIGHT;
+			const color = BLUE_HIGHLIGHT;
 			usageDisplay.innerHTML = `${localize('usage.extra_inline')} <span class="ut-statline-pct" style="color: ${color}">${pct.toFixed(0)}%</span>`;
 			peakIndicator.style.display = 'none';
 
@@ -761,7 +739,7 @@ class UsageUI {
 		}
 
 		// Normal session display
-		const color = session.percentage >= CONFIG.WARNING_THRESHOLD * 100 ? RED_WARNING : BLUE_HIGHLIGHT;
+		const color = BLUE_HIGHLIGHT;
 		usageDisplay.innerHTML = `${localize('usage.session_inline')} <span class="ut-statline-pct" style="color: ${color}">${session.percentage.toFixed(0)}%</span>`;
 		peakIndicator.style.display = isPeakHours() ? '' : 'none';
 
@@ -779,16 +757,8 @@ class UsageUI {
 				progressBar.tooltip.textContent = localize('usage.tooltip_pct_used', { pct: session.percentage.toFixed(0) });
 			}
 
-			// Add weekly marker (filter by current model)
-			const weeklyLimit = usageData.getBindingWeeklyLimit(modelName);
-			if (weeklyLimit) {
-				const markerKeys = { weekly: 'usage.marker_all', sonnetWeekly: 'usage.marker_sonnet', opusWeekly: 'usage.marker_opus', fableWeekly: 'usage.marker_fable' };
-				const markerName = markerKeys[weeklyLimit.key] ? localize(markerKeys[weeklyLimit.key]) : localize('usage.marker_fallback');
-				const markerLabel = `${markerName}: ${weeklyLimit.percentage.toFixed(0)}%`;
-				progressBar.setMarker(weeklyLimit.percentage, markerLabel);
-			} else {
-				progressBar.clearMarker();
-			}
+			// Keep the usage bar informational only: no weekly warning/position marker.
+			progressBar.clearMarker();
 		}
 
 		// Reset time (session)
