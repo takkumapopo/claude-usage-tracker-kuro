@@ -19,6 +19,8 @@ The local source checkout keeps an `upstream` remote so upstream updates can be 
 
 ## Update rule
 
+KURO releases use a fourth numeric version segment (for example `5.6.0.1`) so the customized release stays distinct while remaining comparable by the launcher.
+
 Do not overwrite the KURO patch with an upstream release automatically.
 
 When upstream publishes a new version:
